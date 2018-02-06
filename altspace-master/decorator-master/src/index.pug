@@ -1,0 +1,71 @@
+doctype html
+html
+	head
+		title Homespace Decorator - AltspaceVR
+		if production
+			script(src='https://aframe.io/releases/0.7.0/aframe.min.js')
+			script(src='https://sdk.altvr.com/libs/altspace.js/2.7.3/altspace.min.js')
+			//-script(src='https://cdn.rawgit.com/kripken/ammo.js/1296d374/builds/ammo.js')
+			script(src='build/bundle.min.js')
+		else
+			script(src='https://aframe.io/releases/0.7.0/aframe.js')
+			//-script(src='http://localhost:8001/dist/altspace.js')
+			script(src='https://sdk.altvr.com/libs/altspace.js/2.7.3/altspace.js')
+			script(src='build/bundle.js')
+		script(src="https://unpkg.com/aframe-animation-component/dist/aframe-animation-component.min.js")
+		script(src='lib/ammo.js')
+			
+	body
+		a-scene(debug=!production, altspace='fullspace: true',
+			poly-service='key: AIzaSyCYv7u5gLyRbo0amrki3732pbeqsHppIbo',
+			sync-system='app: decorator; author: altspacevr;')
+
+			a-assets
+				a-asset-item#pedestal_model(src='build/pedestal.gltf')
+
+				a-mixin#decoration(class='decoration', sync='ownOn: gripdown', sync-transform, sync-src, if-mod='moddeco')
+				a-mixin#moddeco(collision='with: #lefthand,#righthand; kinematic: true', grabbable='enabled: true')
+				a-mixin#modspawn(collision='with: #lefthand,#righthand', spawner)
+
+				a-mixin#highrise_spot(position='8 0.5 2.8', rotation='0 180 0')
+				a-mixin#exhibition_spot(position='7.6 0.5 -4')
+				a-mixin#conference_spot(position='1 0.5 -14.5')
+				a-mixin#lodge_spot(position='9.5 0.5 -0.5', rotation='0 180 0')
+				a-mixin#parlor_spot(position='8 2 8.8', rotation='0 -90 0')
+
+			-
+				var pfs = 'templates: highrise_homespace,exhibition-homespace,exhibition-base,conference-homespace,lodge-homespace,parlor-homespace; '
+					+ 'mixins: highrise_spot,exhibition_spot,exhibition_spot,conference_spot,lodge_spot,parlor_spot;'
+			a-entity#spawn-complex(place-for-space=pfs)
+
+				a-entity#spawn_point(position='1 .55 0')
+					a-gltf-model(position='0 -.5 0' src='#pedestal_model', altspace-cursor-collider='enabled: false')
+					a-entity#spawn(maintain-size='1 1 1', if-mod='modspawn')
+
+				a-entity#spawn_menu(position='-1 1 0' library-page='service: poly; page: 0')
+					- let size = .3, pad = .04
+					each i in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+						a-box(library-item=`${i}`, avr-visible=true,
+							width=size, height=size, depth=size/10,
+							position=`${(-2+i%5)*(size+pad)} ${(2-Math.floor(i/5))*(size+pad)} 0`)
+
+					a-box#prev(width=2.5*size+1.5*pad, height=size, depth=size/10,
+						color='#808080' avr-visible=true
+						position=`${-1.25*(size+pad)} ${-2*(size+pad)} 0`
+						library-advance='-1')
+						a-entity(position=`0 0 ${size/20 + .001}` n-text='text: Previous; font-size: 1')
+
+					a-box#next(width=2.5*size+1.5*pad, height=size, depth=size/10,
+						color='#808080' avr-visible=true
+						position=`${1.25*(size+pad)} ${-2*(size+pad)} 0`
+						library-advance='1')
+						a-entity(position=`0 0 ${size/20 + .001}` n-text='text: Next; font-size: 1')
+
+			a-entity#decor
+
+			a-sphere#lefthand(radius=.005, altspace-controls='left', grab-indicator,
+				altspace-cursor-collider='enabled: false', collision='with: #spawn,#decor>*; kinematic: true')
+			a-sphere#righthand(radius=.005, altspace-controls='right', grab-indicator,
+				altspace-cursor-collider='enabled: false', collision='with: #spawn,#decor>*; kinematic: true')
+
+			a-entity(position='0 0 2'): a-camera: a-cursor
